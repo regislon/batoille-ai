@@ -56,23 +56,24 @@ Each brick follows these rules:
 
 ## Bricks overview
 
-| #  | Brick                          | Duration | Version          | Status  |
-| -- | ------------------------------ | -------- | ---------------- | ------- |
-| 0  | Project foundations            | ½ day   | v0.0.1           | ✅ Done |
-| 1  | Async OllamaClient             | ½ day   | v0.0.2           | ✅ Done |
-| 2  | STT (speech-to-text)           | 1 day    | v0.0.3           | TODO    |
-| 3  | Minimal Tutor                  | ½ day   | v0.0.4           | TODO    |
-| 4  | Conversational CLI             | ½ day   | v0.0.5           | TODO    |
-| 5  | SQLite persistence (base)      | 1 day    | v0.0.6           | TODO    |
-| 6  | Gradio interface               | ½ day   | **v0.1.0** | TODO    |
-| 7  | Lesson loader                  | 1-2 days | v0.1.1           | TODO    |
-| 8  | Long-term memory               | 2-3 days | v0.1.2           | TODO    |
-| 9  | Grammar tracking & corrections | 1-2 days | **v0.2.0** | TODO    |
-| 10 | Vocabulary & SRS               | 2 days   | v0.2.1           | TODO    |
-| 11 | TTS (text-to-speech)           | 1 day    | **v0.3.0** | TODO    |
-| 12 | Semantic search                | 2 days   | v0.3.1           | TODO    |
-| 13 | Multi-language support         | 1-2 days | v0.3.2           | TODO    |
-| 14 | Assisted lesson generation     | 1-2 days | v0.4.0           | TODO    |
+| #  | Brick                                  | Duration | Version          | Status  |
+| -- | -------------------------------------- | -------- | ---------------- | ------- |
+| 0  | Project foundations                    | ½ day   | v0.0.1           | ✅ Done |
+| 1  | Async OllamaClient                     | ½ day   | v0.0.2           | ✅ Done |
+| 2  | STT (speech-to-text)                   | 1 day    | v0.0.3           | ✅ Done |
+| 3  | Minimal Tutor + voice REPL             | ½ day   | v0.0.4           | TODO    |
+| 4  | VAD — hands-free turn-taking           | 1 day    | v0.0.5           | TODO    |
+| 5  | Conversational CLI                     | ½ day   | v0.0.6           | TODO    |
+| 6  | SQLite persistence (base)              | 1 day    | v0.0.7           | TODO    |
+| 7  | Gradio interface                       | ½ day   | **v0.1.0** | TODO    |
+| 8  | Lesson loader                          | 1-2 days | v0.1.1           | TODO    |
+| 9  | Long-term memory                       | 2-3 days | v0.1.2           | TODO    |
+| 10 | Grammar tracking & corrections         | 1-2 days | **v0.2.0** | TODO    |
+| 11 | Vocabulary & SRS                       | 2 days   | v0.2.1           | TODO    |
+| 12 | TTS (text-to-speech)                   | 1 day    | **v0.3.0** | TODO    |
+| 13 | Semantic search                        | 2 days   | v0.3.1           | TODO    |
+| 14 | Multi-language support                 | 1-2 days | v0.3.2           | TODO    |
+| 15 | Assisted lesson generation             | 1-2 days | v0.4.0           | TODO    |
 
 **Major milestones**:
 
@@ -135,7 +136,7 @@ bricks depend on it.
 
 ---
 
-### Brick 2 — STT (speech-to-text)
+### Brick 2 — STT (speech-to-text) ✅
 
 **Goal**: validate the voice path on your hardware as early as
 possible. You can speak German, get a clean transcript, and feed it to
@@ -162,11 +163,11 @@ the rest of the stack.
 
 **Scope (out)**:
 
-- Gradio integration (deferred to brick 6 when the UI lands)
+- Gradio integration (deferred to brick 7 when the UI lands)
 - Multi-turn voice conversation (waits for `Tutor` at brick 3)
 - Real-time streaming STT (explore later)
-- Automatic end-of-sentence / VAD detection
-- TTS (brick 11 closes the loop)
+- Automatic end-of-sentence / VAD detection (brick 4)
+- TTS (brick 12 closes the loop)
 
 **Files**:
 
@@ -186,10 +187,11 @@ the rest of the stack.
 
 ---
 
-### Brick 3 — Minimal Tutor
+### Brick 3 — Minimal Tutor + voice REPL
 
-**Goal**: business class that orchestrates a conversation. Stateless on
-disk for now (history in RAM).
+**Goal**: a business class that orchestrates a conversation, plus a
+small script that lets you have a real multi-turn German conversation
+through the mic *today*, without waiting for Gradio at brick 7.
 
 **Scope (in)**:
 
@@ -199,19 +201,28 @@ disk for now (history in RAM).
 - Conversation history kept in memory during instance lifetime
 - `reset()` method to clear history
 - Tests with mocked OllamaClient
+- **`scripts/voice_chat.py`**: multi-turn voice REPL that wires
+  `STTService` (brick 2) + `Tutor` + `OllamaClient` (brick 1). Press
+  Enter to start a turn, press Enter again to stop speaking, hear /
+  read the streamed German reply, repeat. Empty recording or Ctrl+C
+  exits. Press-Enter UX for now — brick 4 (VAD) upgrades this to
+  hands-free.
 
 **Scope (out)**:
 
-- Persistence (Brick 5)
-- Long-term memory (Brick 8)
-- Lessons (Brick 7)
-- Structured corrections (Brick 9)
+- Persistence (Brick 6)
+- Long-term memory (Brick 9)
+- Lessons (Brick 8)
+- Structured corrections (Brick 10)
+- Hands-free turn-taking (Brick 4)
+- TTS — the tutor's reply is text-only (brick 12)
 
 **Files**:
 
 - `src/batoiller/core/tutor.py`
 - `src/batoiller/core/__init__.py`
 - `tests/core/test_tutor.py`
+- `scripts/voice_chat.py`
 
 **Acceptance criteria**:
 
@@ -219,10 +230,68 @@ disk for now (history in RAM).
 - Multiple successive calls maintain context
 - `reset()` starts fresh
 - `core/` modules import **nothing** from UI
+- `uv run python scripts/voice_chat.py` opens a multi-turn voice
+  conversation: you speak, the tutor remembers what you said two
+  turns ago, the script keeps running until you exit
 
 ---
 
-### Brick 4 — Conversational CLI
+### Brick 4 — VAD (hands-free turn-taking)
+
+**Goal**: remove the press-Enter friction from `scripts/voice_chat.py`.
+The mic listens continuously; the script automatically detects when
+you start speaking and when you stop, and only then ships the buffered
+audio to Whisper. Daily-use grade.
+
+**Scope (in)**:
+
+- `VADService` wrapping `silero-vad` (small ONNX model, ~2 MB,
+  Apache-licensed, Python-installable)
+- Public API: `async vad.record_until_silence(max_seconds: float,
+  silence_threshold_seconds: float) -> np.ndarray` — captures audio
+  from default mic, returns once N seconds of silence are detected
+  after at least some speech, or on timeout
+- Audio buffering with a rolling pre-roll (a few hundred ms before
+  voice onset so we don't clip the first phoneme)
+- `voice_chat.py` upgraded: replaces press-Enter capture with
+  `vad.record_until_silence()` in the main loop. Ctrl+C to exit.
+- ADR `002-vad-strategy.md`: silero-vad vs webrtcvad, threshold
+  rationale, latency budget
+- Unit tests: mocked vad model, assert the service yields once
+  silence is sustained, respects timeout, returns empty on no-speech
+
+**Scope (out)**:
+
+- Barge-in (interrupting the tutor mid-reply) — too coupled with TTS
+  (brick 12), revisit then
+- Speaker identification / diarization — not relevant for solo use
+- Wake-word detection — out of scope, push-to-listen with VAD is fine
+- Gradio mic integration — brick 7 consumes the same `VADService`
+
+**Files**:
+
+- `src/batoiller/audio/vad.py`
+- `tests/audio/test_vad.py`
+- `scripts/voice_chat.py` (upgraded)
+- `docs/decisions/002-vad-strategy.md`
+
+**Dependency to add**:
+
+- `silero-vad>=5.1` (Apple-Silicon-friendly, runs on CPU via ONNX
+  Runtime; ~2 MB model bundled in the package)
+
+**Acceptance criteria**:
+
+- Run `uv run python scripts/voice_chat.py`, say nothing — script
+  waits patiently, no false positive
+- Speak a German sentence, pause for ~1 s — VAD ships the audio,
+  Whisper transcribes, tutor replies, mic listens again automatically
+- Three consecutive turns work without touching the keyboard
+- Tests green, mypy strict OK, ruff OK
+
+---
+
+### Brick 5 — Conversational CLI
 
 **Goal**: at this point, you use your tool every evening to learn
 German. Huge mental milestone.
@@ -237,7 +306,7 @@ German. Huge mental milestone.
 
 **Scope (out)**:
 
-- Persistence between sessions (Brick 5)
+- Persistence between sessions (Brick 6)
 - Multi-session history
 - Advanced commands (lessons, vocab, etc.)
 - Voice input through the CLI (the STT service exists since brick 2,
@@ -256,7 +325,7 @@ German. Huge mental milestone.
 
 ---
 
-### Brick 5 — SQLite persistence (base)
+### Brick 6 — SQLite persistence (base)
 
 **Goal**: your tutor remembers conversations across sessions.
 
@@ -275,10 +344,10 @@ German. Huge mental milestone.
 
 **Scope (out)**:
 
-- Long-term facts (`learner_fact`) — Brick 8
-- Summaries — Brick 8
-- Vocabulary — Brick 10
-- Lessons — Brick 7
+- Long-term facts (`learner_fact`) — Brick 9
+- Summaries — Brick 9
+- Vocabulary — Brick 11
+- Lessons — Brick 8
 
 **Files**:
 
@@ -296,7 +365,7 @@ German. Huge mental milestone.
 
 ---
 
-### Brick 6 — Gradio interface 🎯 v0.1.0
+### Brick 7 — Gradio interface 🎯 v0.1.0
 
 **Goal**: first demoable release. You can show the project to someone
 without shame.
@@ -315,8 +384,8 @@ without shame.
 **Scope (out)**:
 
 - Multiple tabs
-- TTS / spoken replies (brick 11)
-- Lesson selector (Brick 7)
+- TTS / spoken replies (brick 12)
+- Lesson selector (Brick 8)
 - Progress dashboard
 
 **Files**:
@@ -335,7 +404,7 @@ without shame.
 
 ---
 
-### Brick 7 — Lesson loader
+### Brick 8 — Lesson loader
 
 **Goal**: structure courses via declarative files editable by hand.
 This is what makes the project a real tutor.
@@ -356,8 +425,8 @@ This is what makes the project a real tutor.
 **Scope (out)**:
 
 - Phased scenarios (post-MVP, integrate later)
-- Automatic lesson generation (Brick 14)
-- Per-lesson progression (Brick 9 or 10)
+- Automatic lesson generation (Brick 15)
+- Per-lesson progression (Brick 10 or 11)
 
 **Files**:
 
@@ -378,7 +447,7 @@ This is what makes the project a real tutor.
 
 ---
 
-### Brick 8 — Long-term memory
+### Brick 9 — Long-term memory
 
 **Goal**: the tutor remembers who you are, what you said a week ago,
 your interests. **This is the brick that creates the illusion of human
@@ -395,8 +464,8 @@ continuity.**
 
 **Scope (out)**:
 
-- Embeddings and semantic search (Brick 12)
-- Grammar skills (Brick 9)
+- Embeddings and semantic search (Brick 13)
+- Grammar skills (Brick 10)
 - Multi-level summaries (weekly, monthly) — can come later
 
 **Files**:
@@ -417,7 +486,7 @@ continuity.**
 
 ---
 
-### Brick 9 — Grammar tracking & corrections 🎯 v0.2.0
+### Brick 10 — Grammar tracking & corrections 🎯 v0.2.0
 
 **Goal**: the tutor identifies your mistakes, categorizes them, and
 adapts its corrections to your recurring weaknesses.
@@ -436,7 +505,7 @@ adapts its corrections to your recurring weaknesses.
 **Scope (out)**:
 
 - Generated targeted exercises (post-MVP)
-- Vocabulary (Brick 10)
+- Vocabulary (Brick 11)
 
 **Files**:
 
@@ -455,7 +524,7 @@ adapts its corrections to your recurring weaknesses.
 
 ---
 
-### Brick 10 — Vocabulary & SRS
+### Brick 11 — Vocabulary & SRS
 
 **Goal**: track vocabulary encountered, Anki-style spaced repetition
 integrated into the conversation.
@@ -489,7 +558,7 @@ integrated into the conversation.
 
 ---
 
-### Brick 11 — TTS (text-to-speech) 🎯 v0.3.0
+### Brick 12 — TTS (text-to-speech) 🎯 v0.3.0
 
 **Goal**: your tutor speaks to you. With STT already in place since
 brick 2, this brick closes the full voice conversational loop.
@@ -519,7 +588,7 @@ brick 2, this brick closes the full voice conversational loop.
 
 ---
 
-### Brick 12 — Semantic search
+### Brick 13 — Semantic search
 
 **Goal**: retrieve relevant "memories" as the conversation history
 grows.
@@ -550,7 +619,7 @@ grows.
 
 ---
 
-### Brick 13 — Multi-language support
+### Brick 14 — Multi-language support
 
 **Goal**: generalization beyond German (Italian, English, Spanish, etc.).
 
@@ -576,7 +645,7 @@ grows.
 
 ---
 
-### Brick 14 — Assisted lesson generation 🎯 v0.4.0
+### Brick 15 — Assisted lesson generation 🎯 v0.4.0
 
 **Goal**: you describe a topic, the tutor generates the skeleton of a
 lesson you can then edit. Complete loop.
