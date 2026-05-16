@@ -269,13 +269,20 @@ CLI; the web UI follows at brick 7.
   STT smoke
 - Unit tests: mocked `piper.PiperVoice.synthesize`, assert wrapper
   returns bytes / triggers playback / handles voice-not-found error
+- **`TTSService.speak_stream(text_chunks, on_text)`**: sentence-pipelined
+  playback (added in a follow-up perf commit). Buffers LLM text chunks
+  into sentences; synthesizes each on a worker thread while the LLM
+  keeps streaming; plays through a single persistent `sd.OutputStream`
+  to avoid open/close clicks. Time-to-first-audio drops from "full
+  LLM latency + full synthesis" to "first-sentence latency + first-
+  sentence synthesis". Asymmetric silence padding (80 ms warmup on the
+  first chunk, 200 ms breathing pause between subsequent sentences)
+  for clean device startup and natural rhythm.
 
 **Scope (out)**:
 
 - Dynamic voice choice from the UI (post-MVP)
 - Configurable speed / pitch / volume
-- Streaming TTS while text is still arriving from the LLM (more
-  complex; brick 7 or later if useful)
 - Barge-in (interrupting playback when the user starts speaking) —
   post-v0.4.0; needs either VAD or a mic-level threshold check
   during playback
@@ -406,7 +413,6 @@ hear the spoken reply, and the conversation persists across sessions.
 - Multiple tabs
 - Lesson selector (Brick 8)
 - Progress dashboard
-- Streaming TTS while the LLM is still generating
 - VAD / automatic turn-taking — push-to-talk by design (more
   predictable, no false stops on hesitations)
 
@@ -680,8 +686,6 @@ Some directions to explore once the base is solid:
   always-listening device, accessibility scenarios, hands-busy
   practice (cooking, walking). Push-to-talk in Gradio is the better
   default for desktop usage; this is opt-in polish.
-- **Streaming TTS**: synthesize sentence-by-sentence while the LLM is
-  still generating, for sub-second time-to-first-audio.
 - **Barge-in**: detect when the user starts speaking during tutor
   playback (via VAD or mic-level threshold), stop playback, start
   listening.

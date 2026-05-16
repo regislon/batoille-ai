@@ -141,17 +141,23 @@ async def conversation_loop(llm: OllamaClient) -> int:
 
         print(f"\nYou: {transcript}")
         print("Tutor: ", end="", flush=True)
-        full_reply = ""
-        async for chunk in tutor.respond_stream(transcript):
-            print(chunk, end="", flush=True)
-            full_reply += chunk
-        print()
-
-        if tts_available and full_reply.strip():
+        text_chunks = tutor.respond_stream(transcript)
+        if tts_available:
             try:
-                await tts.speak(full_reply)
+                await tts.speak_stream(
+                    text_chunks,
+                    on_text=lambda c: print(c, end="", flush=True),
+                )
             except TTSError as exc:
-                print(f"  (TTS failed for this turn: {exc})", file=sys.stderr)
+                # Drain remainder text if TTS broke mid-stream so the
+                # tutor's history still receives a valid assistant turn.
+                async for chunk in text_chunks:
+                    print(chunk, end="", flush=True)
+                print(f"\n  (TTS failed for this turn: {exc})", file=sys.stderr)
+        else:
+            async for chunk in text_chunks:
+                print(chunk, end="", flush=True)
+        print()
 
 
 async def main() -> int:
