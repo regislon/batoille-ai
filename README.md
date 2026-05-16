@@ -18,6 +18,8 @@ Default target language is **German**, but the architecture does not hardcode it
 - **Python 3.12+**
 - [**uv**](https://docs.astral.sh/uv/) for dependency management
 - [**Ollama**](https://ollama.com/) running locally
+- **Apple Silicon Mac** — required for on-device STT/TTS (brick 2+ uses `mlx-whisper`)
+- **ffmpeg** in PATH — `brew install ffmpeg` (used by Whisper to decode audio)
 
 ## Quick start
 

@@ -17,17 +17,21 @@ The name is Vaudois patois for *"to chatter, discuss"* — Suisse romande identi
 
 ## Stack (locked — don't propose alternatives)
 
-| Layer        | Choice                                  |
-|--------------|-----------------------------------------|
-| Language     | Python 3.12+                            |
-| Pkg manager  | uv                                      |
-| LLM runtime  | Ollama (default model: `mistral-small`) |
-| STT (later)  | mlx-whisper                             |
-| TTS (later)  | Piper                                   |
-| DB           | SQLite via SQLModel                     |
-| Lesson fmt   | YAML front-matter + Markdown body       |
-| UI (MVP)     | Gradio (added in a later step)          |
-| License      | MIT                                     |
+| Layer        | Choice                                                              |
+|--------------|---------------------------------------------------------------------|
+| Language     | Python 3.12+                                                        |
+| Pkg manager  | uv                                                                  |
+| LLM runtime  | Ollama (default model: `mistral-small`)                             |
+| STT          | mlx-whisper (default model: `mlx-community/whisper-turbo`)          |
+| TTS (later)  | Piper                                                               |
+| DB           | SQLite via SQLModel                                                 |
+| Lesson fmt   | YAML front-matter + Markdown body                                   |
+| UI (MVP)     | Gradio (added in a later step)                                      |
+| License      | MIT                                                                 |
+
+**Platform / runtime prereqs:**
+- Apple Silicon Mac is required for the audio bricks (mlx-whisper, eventually Piper).
+- `ffmpeg` must be in PATH (`brew install ffmpeg`) — Whisper shells out to it for audio decoding.
 
 ## Repository layout
 
@@ -36,11 +40,13 @@ batoiller/
 ├── src/batoiller/
 │   ├── core/      # Tutor, conversation orchestration (no I/O specifics)
 │   ├── llm/       # Ollama client adapter
+│   ├── audio/     # STT (mlx-whisper) — and later TTS (Piper)
 │   ├── memory/    # SQLModel models + MemoryService
 │   └── lessons/   # LessonLoader, lesson schema
 ├── tests/
 ├── docs/
 │   ├── architecture.md
+│   ├── ROADMAP.md
 │   └── decisions/   # ADRs, numbered 001-, 002-, ...
 ├── lessons/         # Lesson content (YAML front-matter + Markdown)
 └── scripts/         # Smoke tests, dev utilities
@@ -58,13 +64,19 @@ batoiller/
 
 ## Things to NOT do
 
-- ❌ Don't import Gradio (or any UI lib) inside `src/batoiller/core/`, `llm/`, `memory/`, or `lessons/`.
+- ❌ Don't import Gradio (or any UI lib) inside `src/batoiller/core/`, `llm/`, `memory/`, `lessons/`, or `audio/`.
 - ❌ Don't hardcode "German" anywhere — language is configuration.
 - ❌ Don't add a dependency without proposing it first.
 - ❌ Don't introduce a new build tool, web framework, or LLM runtime.
 - ❌ Don't write speculative abstractions for hypothetical needs.
 - ❌ Don't write multi-paragraph docstrings or comment blocks. One short line max for non-obvious *why*.
 - ❌ Don't catch broad exceptions to "be safe" — let them propagate unless there's a real recovery.
+- ❌ Don't call `STTService.transcribe` concurrently — mlx/Metal isn't safe for it. When multi-user surfaces appear (brick 6 Gradio), wrap with an `asyncio.Lock` or a queue.
+
+## Audio notes (brick 2+)
+
+- **Whisper hallucinates on silence.** A typical German artifact is `Untertitel von Stephanie Geiges`. Brick 6 (Gradio) and brick 9 (corrections) MUST filter empty / near-silent input before sending downstream, otherwise the correction pipeline will treat the hallucination as a real learner mistake.
+- Default STT model is `whisper-turbo` (~1.5 GB). Swap to `mlx-community/whisper-large-v3-mlx` (~2.9 GB, slightly better quality) by setting `BATOILLER_STT_MODEL`.
 
 ## Useful commands
 

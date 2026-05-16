@@ -149,7 +149,7 @@ the rest of the stack.
 **Scope (in)**:
 
 - `STTService` wrapping `mlx-whisper`
-- `large-v3` model by default (configurable via constructor / env var)
+- `whisper-turbo` model by default (~1.5 GB, distilled from large-v3, near-equivalent German WER; swap to `mlx-community/whisper-large-v3-mlx` via constructor or `BATOILLER_STT_MODEL` env var)
 - Audio input from file path or raw bytes
 - Public API: `await stt.transcribe(audio) -> str` and a sync helper if
   trivial to expose

@@ -23,6 +23,10 @@ dependencies = [
   "sqlmodel>=0.0.22",
   "pyyaml>=6.0",
   "python-frontmatter>=1.1",
+  # Audio stack (brick 2+). mlx-whisper is Apple-Silicon only.
+  "mlx-whisper>=0.4.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
+  "sounddevice>=0.5.5",
+  "soundfile>=0.13.1",
 ]
 
 [dependency-groups]
@@ -65,6 +69,10 @@ quote-style = "double"
 python_version = "3.12"
 strict = true
 files = ["src", "tests", "scripts"]
+
+[[tool.mypy.overrides]]
+module = ["mlx_whisper.*", "sounddevice.*", "soundfile.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
