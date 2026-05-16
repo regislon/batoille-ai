@@ -31,6 +31,34 @@ uv run python scripts/hello.py
 
 If the smoke test prints a German greeting, you're set.
 
+## Run Ollama & chat with Mistral
+
+**Start the daemon.** Install the [Ollama Mac app](https://ollama.com/download) (auto-starts on login), or from a terminal:
+
+```bash
+ollama serve &
+# Verify it's reachable:
+curl http://localhost:11434/api/tags
+```
+
+**Chat with Mistral** from the CLI — multi-turn, keeps context until you type `/bye`:
+
+```bash
+ollama run mistral-small
+```
+
+Inside the REPL, give it a tutor persona for the session:
+
+```
+/set system "Du bist ein freundlicher Deutschlehrer für französischsprachige Lerner."
+```
+
+**Test batoiller's own async wrapper** end-to-end (basic chat, streaming, multi-turn context):
+
+```bash
+uv run python scripts/check_ollama_client.py
+```
+
 ## Going further
 
 - 📐 [Architecture overview](docs/architecture.md)
