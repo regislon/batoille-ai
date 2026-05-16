@@ -61,27 +61,32 @@ Each brick follows these rules:
 | 0  | Project foundations                    | ½ day   | v0.0.1           | ✅ Done |
 | 1  | Async OllamaClient                     | ½ day   | v0.0.2           | ✅ Done |
 | 2  | STT (speech-to-text)                   | 1 day    | v0.0.3           | ✅ Done |
-| 3  | Minimal Tutor + voice REPL             | ½ day   | v0.0.4           | TODO    |
+| 3  | Minimal Tutor + voice REPL             | ½ day   | v0.0.4           | ✅ Done |
 | 4  | VAD — hands-free turn-taking           | 1 day    | v0.0.5           | TODO    |
-| 5  | Conversational CLI                     | ½ day   | v0.0.6           | TODO    |
-| 6  | SQLite persistence (base)              | 1 day    | v0.0.7           | TODO    |
-| 7  | Gradio interface                       | ½ day   | **v0.1.0** | TODO    |
-| 8  | Lesson loader                          | 1-2 days | v0.1.1           | TODO    |
-| 9  | Long-term memory                       | 2-3 days | v0.1.2           | TODO    |
-| 10 | Grammar tracking & corrections         | 1-2 days | **v0.2.0** | TODO    |
-| 11 | Vocabulary & SRS                       | 2 days   | v0.2.1           | TODO    |
-| 12 | TTS (text-to-speech)                   | 1 day    | **v0.3.0** | TODO    |
-| 13 | Semantic search                        | 2 days   | v0.3.1           | TODO    |
-| 14 | Multi-language support                 | 1-2 days | v0.3.2           | TODO    |
-| 15 | Assisted lesson generation             | 1-2 days | v0.4.0           | TODO    |
+| 5  | TTS (text-to-speech) — spoken replies  | 1 day    | v0.0.6           | TODO    |
+| 6  | Conversational CLI                     | ½ day   | v0.0.7           | TODO    |
+| 7  | SQLite persistence (base)              | 1 day    | v0.0.8           | TODO    |
+| 8  | Gradio interface                       | ½ day   | **v0.1.0** | TODO    |
+| 9  | Lesson loader                          | 1-2 days | v0.1.1           | TODO    |
+| 10 | Long-term memory                       | 2-3 days | v0.1.2           | TODO    |
+| 11 | Grammar tracking & corrections         | 1-2 days | **v0.2.0** | TODO    |
+| 12 | Vocabulary & SRS                       | 2 days   | v0.2.1           | TODO    |
+| 13 | Semantic search                        | 2 days   | **v0.3.0** | TODO    |
+| 14 | Multi-language support                 | 1-2 days | v0.3.1           | TODO    |
+| 15 | Assisted lesson generation             | 1-2 days | **v0.4.0** | TODO    |
 
 **Major milestones**:
 
-- **v0.1.0**: end-to-end usable demo (chat + DB + Gradio).
+- **v0.1.0**: end-to-end usable demo (full hands-free voice loop in
+  scripts/, plus a Gradio web UI with persistence).
 - **v0.2.0**: pedagogical tutor with lessons, memory and corrections.
-- **v0.3.0**: full voice-enabled tutor (TTS closes the voice loop
-  opened by STT at v0.0.3).
+- **v0.3.0**: tutor with long-term semantic recall (remembers what you
+  said weeks ago by topic, not just by recency).
 - **v0.4.0**: self-evolving tutor (generates its own lessons).
+
+Note: the full voice loop (speak → STT → tutor → TTS → hear) closes
+already at brick 5 (v0.0.6), well before v0.1.0. v0.1.0 marks the
+moment that voice is wrapped in a polished demoable web UI.
 
 ---
 
@@ -163,11 +168,11 @@ the rest of the stack.
 
 **Scope (out)**:
 
-- Gradio integration (deferred to brick 7 when the UI lands)
+- Gradio integration (deferred to brick 8 when the UI lands)
 - Multi-turn voice conversation (waits for `Tutor` at brick 3)
 - Real-time streaming STT (explore later)
 - Automatic end-of-sentence / VAD detection (brick 4)
-- TTS (brick 12 closes the loop)
+- TTS (brick 5 closes the loop)
 
 **Files**:
 
@@ -187,11 +192,11 @@ the rest of the stack.
 
 ---
 
-### Brick 3 — Minimal Tutor + voice REPL
+### Brick 3 — Minimal Tutor + voice REPL ✅
 
 **Goal**: a business class that orchestrates a conversation, plus a
 small script that lets you have a real multi-turn German conversation
-through the mic *today*, without waiting for Gradio at brick 7.
+through the mic *today*, without waiting for Gradio at brick 8.
 
 **Scope (in)**:
 
@@ -210,12 +215,12 @@ through the mic *today*, without waiting for Gradio at brick 7.
 
 **Scope (out)**:
 
-- Persistence (Brick 6)
-- Long-term memory (Brick 9)
-- Lessons (Brick 8)
-- Structured corrections (Brick 10)
+- Persistence (Brick 7)
+- Long-term memory (Brick 10)
+- Lessons (Brick 9)
+- Structured corrections (Brick 11)
 - Hands-free turn-taking (Brick 4)
-- TTS — the tutor's reply is text-only (brick 12)
+- TTS — the tutor's reply is text-only (brick 5)
 
 **Files**:
 
@@ -226,13 +231,13 @@ through the mic *today*, without waiting for Gradio at brick 7.
 
 **Acceptance criteria**:
 
-- A tutor can be instantiated with a German system prompt
-- Multiple successive calls maintain context
-- `reset()` starts fresh
-- `core/` modules import **nothing** from UI
+- A tutor can be instantiated with a German system prompt ✅
+- Multiple successive calls maintain context ✅
+- `reset()` starts fresh ✅
+- `core/` modules import **nothing** from UI ✅
 - `uv run python scripts/voice_chat.py` opens a multi-turn voice
   conversation: you speak, the tutor remembers what you said two
-  turns ago, the script keeps running until you exit
+  turns ago, the script keeps running until you exit ✅
 
 ---
 
@@ -262,11 +267,11 @@ audio to Whisper. Daily-use grade.
 
 **Scope (out)**:
 
-- Barge-in (interrupting the tutor mid-reply) — too coupled with TTS
-  (brick 12), revisit then
+- Barge-in (interrupting the tutor mid-reply) — too coupled with
+  TTS playback (brick 5), revisit once both bricks land
 - Speaker identification / diarization — not relevant for solo use
 - Wake-word detection — out of scope, push-to-listen with VAD is fine
-- Gradio mic integration — brick 7 consumes the same `VADService`
+- Gradio mic integration — brick 8 consumes the same `VADService`
 
 **Files**:
 
@@ -291,10 +296,75 @@ audio to Whisper. Daily-use grade.
 
 ---
 
-### Brick 5 — Conversational CLI
+### Brick 5 — TTS (text-to-speech) — spoken replies
 
-**Goal**: at this point, you use your tool every evening to learn
-German. Huge mental milestone.
+**Goal**: the tutor speaks to you. With STT in place since brick 2 and
+VAD since brick 4, this brick closes the full hands-free voice loop:
+you speak → STT → Tutor → TTS → you hear. A real conversation, no
+keyboard, no screen-reading.
+
+Pulled forward from brick 12 because the voice experience benefits
+massively from being two-way as early as possible — text-only replies
+break immersion.
+
+**Scope (in)**:
+
+- `TTSService` wrapping `piper-tts` (local, CPU-based ONNX inference)
+- Default voice: `de_DE-thorsten-high` (~70 MB, clear male German
+  voice, auto-downloads on first use). Overridable via constructor
+  or `BATOILLER_TTS_VOICE` env var.
+- Public API: `await tts.synthesize(text) -> bytes` (PCM/wav bytes)
+  and `await tts.speak(text) -> None` (plays via `sounddevice` from
+  brick 2's dep stack)
+- `scripts/voice_chat.py` upgraded: after `tutor.respond_stream` prints
+  the full reply, `await tts.speak(reply)` plays it back. Sequential
+  (synthesize-then-play) — streaming TTS sentence-by-sentence is a
+  later polish item.
+- `scripts/check_tts.py`: live smoke that synthesizes "Hallo, ich bin
+  dein Deutschlehrer." and plays it; ffmpeg/audio probes mirror the
+  STT smoke
+- Unit tests: mocked `piper.PiperVoice.synthesize`, assert wrapper
+  returns bytes / triggers playback / handles voice-not-found error
+
+**Scope (out)**:
+
+- Dynamic voice choice from the UI (post-MVP)
+- Configurable speed / pitch / volume
+- Streaming TTS while text is still arriving from the LLM (more
+  complex; sentence-by-sentence is the natural unit, brick 8 or
+  later if useful)
+- Barge-in (interrupting playback when the user starts speaking) —
+  needs VAD + audio-output cancellation; brick 6 or 7 backlog
+
+**Files**:
+
+- `src/batoiller/audio/tts.py`
+- `src/batoiller/audio/models.py` (add `TTSError`)
+- `scripts/check_tts.py`
+- `scripts/voice_chat.py` (upgraded with TTS playback)
+- `tests/audio/test_tts.py`
+
+**Dependency to add**:
+
+- `piper-tts>=1.2` (Apple-Silicon compatible via ONNX Runtime; one
+  voice model auto-downloads on first synth)
+
+**Acceptance criteria**:
+
+- `uv run python scripts/check_tts.py` produces audible German speech
+  through the default output device
+- `voice_chat.py` reads each tutor reply aloud after streaming the
+  text — sequential, no overlap, no race with mic capture (VAD
+  pauses while playback is in progress)
+- Tests green, mypy strict OK, ruff OK
+
+---
+
+### Brick 6 — Conversational CLI
+
+**Goal**: at this point, you also use your tool every evening to learn
+German *by typing* (e.g. on the bus, or when you don't want to talk
+out loud). Huge mental milestone for non-voice use cases.
 
 **Scope (in)**:
 
@@ -306,11 +376,11 @@ German. Huge mental milestone.
 
 **Scope (out)**:
 
-- Persistence between sessions (Brick 6)
+- Persistence between sessions (Brick 7)
 - Multi-session history
 - Advanced commands (lessons, vocab, etc.)
-- Voice input through the CLI (the STT service exists since brick 2,
-  but mic-to-CLI wiring is deferred to keep this brick text-only)
+- Voice input/output through the CLI (already covered by
+  `scripts/voice_chat.py` from bricks 3-5)
 
 **Files**:
 
@@ -325,7 +395,7 @@ German. Huge mental milestone.
 
 ---
 
-### Brick 6 — SQLite persistence (base)
+### Brick 7 — SQLite persistence (base)
 
 **Goal**: your tutor remembers conversations across sessions.
 
@@ -344,10 +414,10 @@ German. Huge mental milestone.
 
 **Scope (out)**:
 
-- Long-term facts (`learner_fact`) — Brick 9
-- Summaries — Brick 9
-- Vocabulary — Brick 11
-- Lessons — Brick 8
+- Long-term facts (`learner_fact`) — Brick 10
+- Summaries — Brick 10
+- Vocabulary — Brick 12
+- Lessons — Brick 9
 
 **Files**:
 
@@ -365,7 +435,7 @@ German. Huge mental milestone.
 
 ---
 
-### Brick 7 — Gradio interface 🎯 v0.1.0
+### Brick 8 — Gradio interface 🎯 v0.1.0
 
 **Goal**: first demoable release. You can show the project to someone
 without shame.
@@ -377,16 +447,18 @@ without shame.
 - Soft theme, title and description in German + English
 - Tutor shared across sessions (application singleton)
 - "Reset conversation" button
-- Microphone input wired to the `STTService` from brick 2 (the user can
-  type or speak — text-only stays the default)
+- Microphone input wired to the `VADService` from brick 4 +
+  `STTService` from brick 2 (hands-free voice in)
+- Speaker output wired to the `TTSService` from brick 5 (hands-free
+  voice out) — toggleable via a UI checkbox
 - Launch: `uv run python -m batoiller.app`
 
 **Scope (out)**:
 
 - Multiple tabs
-- TTS / spoken replies (brick 12)
-- Lesson selector (Brick 8)
+- Lesson selector (Brick 9)
 - Progress dashboard
+- Streaming TTS while the LLM is still generating
 
 **Files**:
 
@@ -398,13 +470,14 @@ without shame.
 - App launches and is accessible at `localhost:7860`
 - A full conversation works, with persistence across sessions
 - Mic button transcribes and submits a German utterance
+- Tutor's reply is both displayed AND spoken aloud
 - README updated with screenshot and instructions
 
 **Tag: `v0.1.0`** 🎉
 
 ---
 
-### Brick 8 — Lesson loader
+### Brick 9 — Lesson loader
 
 **Goal**: structure courses via declarative files editable by hand.
 This is what makes the project a real tutor.
@@ -426,7 +499,7 @@ This is what makes the project a real tutor.
 
 - Phased scenarios (post-MVP, integrate later)
 - Automatic lesson generation (Brick 15)
-- Per-lesson progression (Brick 10 or 11)
+- Per-lesson progression (Brick 11 or 12)
 
 **Files**:
 
@@ -447,7 +520,7 @@ This is what makes the project a real tutor.
 
 ---
 
-### Brick 9 — Long-term memory
+### Brick 10 — Long-term memory
 
 **Goal**: the tutor remembers who you are, what you said a week ago,
 your interests. **This is the brick that creates the illusion of human
@@ -460,12 +533,12 @@ continuity.**
 - Post-message pipeline: analysis + facts persistence
 - End-of-session summary generation
 - Enriched system prompt construction (facts + last session summary)
-- ADR 002: "Conversational memory strategy"
+- ADR 003: "Conversational memory strategy"
 
 **Scope (out)**:
 
 - Embeddings and semantic search (Brick 13)
-- Grammar skills (Brick 10)
+- Grammar skills (Brick 11)
 - Multi-level summaries (weekly, monthly) — can come later
 
 **Files**:
@@ -475,7 +548,7 @@ continuity.**
 - `src/batoiller/memory/extraction.py`
 - `src/batoiller/core/prompts.py` (enriched construction)
 - Alembic migration
-- `docs/decisions/002-memory-strategy.md`
+- `docs/decisions/003-memory-strategy.md`
 
 **Acceptance criteria**:
 
@@ -486,7 +559,7 @@ continuity.**
 
 ---
 
-### Brick 10 — Grammar tracking & corrections 🎯 v0.2.0
+### Brick 11 — Grammar tracking & corrections 🎯 v0.2.0
 
 **Goal**: the tutor identifies your mistakes, categorizes them, and
 adapts its corrections to your recurring weaknesses.
@@ -505,7 +578,7 @@ adapts its corrections to your recurring weaknesses.
 **Scope (out)**:
 
 - Generated targeted exercises (post-MVP)
-- Vocabulary (Brick 11)
+- Vocabulary (Brick 12)
 
 **Files**:
 
@@ -524,7 +597,7 @@ adapts its corrections to your recurring weaknesses.
 
 ---
 
-### Brick 11 — Vocabulary & SRS
+### Brick 12 — Vocabulary & SRS
 
 **Goal**: track vocabulary encountered, Anki-style spaced repetition
 integrated into the conversation.
@@ -558,40 +631,11 @@ integrated into the conversation.
 
 ---
 
-### Brick 12 — TTS (text-to-speech) 🎯 v0.3.0
-
-**Goal**: your tutor speaks to you. With STT already in place since
-brick 2, this brick closes the full voice conversational loop.
-
-**Scope (in)**:
-
-- `TTSService` wrapping Piper
-- `de_DE-thorsten-high` voice by default
-- Audio generation from response text
-- Auto-play in Gradio (`gr.Audio` with `autoplay`)
-
-**Scope (out)**:
-
-- Dynamic voice choice by user (post-MVP)
-- Configurable speed / pitch
-
-**Files**:
-
-- `src/batoiller/audio/tts.py`
-- Gradio app update
-
-**Acceptance criteria**:
-
-- Complete voice loop: you speak → STT → LLM → TTS → you hear
-
-**Tag: `v0.3.0`** 🎉
-
----
-
-### Brick 13 — Semantic search
+### Brick 13 — Semantic search 🎯 v0.3.0
 
 **Goal**: retrieve relevant "memories" as the conversation history
-grows.
+grows. The tutor finds what you said *about a topic* weeks ago, not
+just the most recent chronological turns.
 
 **Scope (in)**:
 
@@ -610,12 +654,14 @@ grows.
 
 - `src/batoiller/memory/embeddings.py`
 - Update `MemoryService`
-- ADR 003: "Semantic vs SQL for memory search"
+- ADR 004: "Semantic vs SQL for memory search"
 
 **Acceptance criteria**:
 
 - You ask "what did we talk about regarding the house the other day" →
   the tutor retrieves the relevant memories
+
+**Tag: `v0.3.0`** 🎉
 
 ---
 
@@ -632,7 +678,8 @@ grows.
 
 **Scope (out)**:
 
-- Voice in each language (depends on Piper availability)
+- Voice in each language (depends on Piper availability — most major
+  languages have a thorsten-tier voice)
 
 **Files**:
 
@@ -677,6 +724,10 @@ lesson you can then edit. Complete loop.
 
 Some directions to explore once the base is solid:
 
+- **Streaming TTS**: synthesize sentence-by-sentence while the LLM is
+  still generating, for sub-second time-to-first-audio.
+- **Barge-in**: detect when the user starts speaking during tutor
+  playback, stop playback, start listening.
 - **Dedicated exercise mode**: targeted exercises on weak skills,
   outside of free conversation.
 - **Progress export**: markdown / PDF reports of progress.
@@ -810,8 +861,11 @@ This file is yours. A few good habits:
 - **Adjust durations** if you find you're going faster or slower than
   estimated.
 - **Reorder bricks** if your usage suggests another priority (for
-  example, voice was originally planned at brick 10 and pulled forward
-  to brick 2 — the same kind of move stays available).
+  example, STT was originally planned at brick 10 and pulled forward
+  to brick 2 to de-risk voice early; VAD got slotted in as brick 4 so
+  voice_chat.py becomes hands-free without waiting for Gradio; TTS
+  got pulled from brick 12 to brick 5 so the voice loop closes well
+  before the web UI — the same kind of move stays available).
 - **Add bricks** when new needs emerge.
 - **Remove bricks** if you decide they're not useful.
 

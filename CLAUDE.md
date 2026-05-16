@@ -71,11 +71,11 @@ batoiller/
 - ❌ Don't write speculative abstractions for hypothetical needs.
 - ❌ Don't write multi-paragraph docstrings or comment blocks. One short line max for non-obvious *why*.
 - ❌ Don't catch broad exceptions to "be safe" — let them propagate unless there's a real recovery.
-- ❌ Don't call `STTService.transcribe` concurrently — mlx/Metal isn't safe for it. When multi-user surfaces appear (brick 7 Gradio), wrap with an `asyncio.Lock` or a queue.
+- ❌ Don't call `STTService.transcribe` concurrently — mlx/Metal isn't safe for it. When multi-user surfaces appear (brick 8 Gradio), wrap with an `asyncio.Lock` or a queue.
 
 ## Audio notes (brick 2+)
 
-- **Whisper hallucinates on silence.** A typical German artifact is `Untertitel von Stephanie Geiges`. Brick 4 (VAD) is the first defense — it should never ship silent or near-silent audio to Whisper. Brick 7 (Gradio) and brick 10 (corrections) MUST also filter empty / near-silent input before sending downstream, otherwise the correction pipeline will treat the hallucination as a real learner mistake.
+- **Whisper hallucinates on silence.** A typical German artifact is `Untertitel von Stephanie Geiges`. Brick 4 (VAD) is the first defense — it should never ship silent or near-silent audio to Whisper. Brick 8 (Gradio) and brick 11 (corrections) MUST also filter empty / near-silent input before sending downstream, otherwise the correction pipeline will treat the hallucination as a real learner mistake.
 - Default STT model is `whisper-turbo` (~1.5 GB). Swap to `mlx-community/whisper-large-v3-mlx` (~2.9 GB, slightly better quality) by setting `BATOILLER_STT_MODEL`.
 
 ## Useful commands

@@ -19,7 +19,7 @@ class STTService:
     """Transcribe audio to text using a local Whisper model on Apple Silicon.
 
     Sequential calls only. Concurrent calls are not supported and may corrupt
-    Metal state (mlx-whisper internals). Brick 7 (Gradio) will need a lock
+    Metal state (mlx-whisper internals). Brick 8 (Gradio) will need a lock
     when multiple users could hit the service at once.
     """
 
