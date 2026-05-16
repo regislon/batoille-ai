@@ -13,8 +13,8 @@ Requires:
 Press Enter to start a turn, press Enter again to stop speaking, hear the
 tutor's German reply, repeat. Empty recording or Ctrl+C exits.
 
-Note: this is the press-Enter UX. Brick 4 (VAD) upgrades it to hands-free
-turn-taking.
+Note: this is the press-Enter UX. The Gradio web UI at brick 7 replaces
+this script with a push-to-talk button for daily use.
 """
 
 import asyncio
