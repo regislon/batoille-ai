@@ -23,10 +23,11 @@ dependencies = [
   "sqlmodel>=0.0.22",
   "pyyaml>=6.0",
   "python-frontmatter>=1.1",
-  # Audio stack (brick 2+). mlx-whisper is Apple-Silicon only.
+  # Audio stack (brick 2+). mlx-whisper is Apple-Silicon only; piper-tts is GPLv3.
   "mlx-whisper>=0.4.3; sys_platform == 'darwin' and platform_machine == 'arm64'",
   "sounddevice>=0.5.5",
   "soundfile>=0.13.1",
+  "piper-tts>=1.2,<2",
 ]
 
 [dependency-groups]

@@ -9,9 +9,11 @@ Requires:
     - Microphone permission granted to the terminal
     - Ollama daemon running with mistral-small pulled
     - Whisper turbo model downloaded (auto on first run, ~1.5 GB)
+    - Piper voice de_DE-thorsten-high (auto on first run, ~114 MB)
 
 Press Enter to start a turn, press Enter again to stop speaking, hear the
-tutor's German reply, repeat. Empty recording or Ctrl+C exits.
+tutor's German reply (text + spoken), repeat. Empty recording or Ctrl+C
+exits.
 
 Note: this is the press-Enter UX. The Gradio web UI at brick 7 replaces
 this script with a push-to-talk button for daily use.
@@ -27,7 +29,7 @@ import numpy as np
 import sounddevice as sd
 import soundfile as sf
 
-from batoiller.audio import STTService
+from batoiller.audio import STTService, TTSError, TTSService
 from batoiller.core import Tutor
 from batoiller.llm import LLMConnectionError, LLMModelNotFoundError, OllamaClient
 
@@ -96,9 +98,22 @@ async def transcribe_recording(stt: STTService, rec: np.ndarray) -> str:
 
 async def conversation_loop(llm: OllamaClient) -> int:
     stt = STTService()
+    tts = TTSService()
     tutor = Tutor(llm, system_prompt=SYSTEM_PROMPT)
 
-    print("=== Voice chat with German tutor ===")
+    # Preload the TTS voice up-front so the download (if needed) happens
+    # before the first user turn, not in the middle of a reply.
+    print("Loading TTS voice...")
+    try:
+        await tts.preload()
+    except TTSError as exc:
+        print(f"TTS preload failed: {exc}", file=sys.stderr)
+        print("Continuing without spoken replies.", file=sys.stderr)
+        tts_available = False
+    else:
+        tts_available = True
+
+    print("\n=== Voice chat with German tutor ===")
     print("Hold a multi-turn conversation. Empty recording or Ctrl+C exits.")
 
     while True:
@@ -126,9 +141,17 @@ async def conversation_loop(llm: OllamaClient) -> int:
 
         print(f"\nYou: {transcript}")
         print("Tutor: ", end="", flush=True)
+        full_reply = ""
         async for chunk in tutor.respond_stream(transcript):
             print(chunk, end="", flush=True)
+            full_reply += chunk
         print()
+
+        if tts_available and full_reply.strip():
+            try:
+                await tts.speak(full_reply)
+            except TTSError as exc:
+                print(f"  (TTS failed for this turn: {exc})", file=sys.stderr)
 
 
 async def main() -> int:
